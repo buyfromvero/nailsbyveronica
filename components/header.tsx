@@ -186,13 +186,13 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                   <DropdownMenuItem asChild>
                     <Link href="/protected">My Account</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    {profile?.role === "admin" && (
-  <Link href="/admin">
-    Admin Dashboard
-  </Link>
+                  {profile?.role === "admin" && (
+  <DropdownMenuItem asChild>
+    <Link href="/admin">
+      Admin Dashboard
+    </Link>
+  </DropdownMenuItem>
 )}
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
                     Sign Out
                   </DropdownMenuItem>
@@ -259,7 +259,13 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                     <p className="text-sm text-muted-foreground px-2">{user.email}</p>
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/protected">My Account</Link>
+                      
                     </Button>
+                    {profile?.role === "admin" && (
+  <Button variant="outline" size="sm" asChild>
+    <Link href="/admin">Admin Dashboard</Link>
+  </Button>
+)}
                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                       Sign Out
                     </Button>
