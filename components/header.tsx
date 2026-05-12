@@ -151,7 +151,11 @@ export function Header() {
                     <Link href="/protected">My Account</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/admin">Admin Dashboard</Link>
+                    {profile?.role === "admin" && (
+  <Link href="/admin">
+    Admin Dashboard
+  </Link>
+)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
                     Sign Out
