@@ -320,11 +320,7 @@ useEffect(() => {
       .eq("id", user.id)
       .single()
 
-    // If not admin
-    if (
-  error ||
-  profile?.role !== "admin" ||
-  const adminEmails = [
+const adminEmails = [
   "veronicamendonca2113@gmail.com",
   "aniruddhashindeofficial@gmail.com",
   "nailsbyveronica@gmail.com",
