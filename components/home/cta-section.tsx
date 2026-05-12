@@ -40,9 +40,9 @@ export function CTASection() {
             </Button>
             <Button 
               size="lg" 
-              variant="outline"
+              variant="secondary"
               asChild 
-              className="text-lg px-8 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+              className="text-lg px-8"
             >
               <Link href="/contact">Contact Us</Link>
             </Button>

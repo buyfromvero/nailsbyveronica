@@ -2,13 +2,30 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // If Supabase is not configured, allow all requests to pass through
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Block access to protected/admin routes when Supabase is not configured
+    if (
+      request.nextUrl.pathname.startsWith('/protected') ||
+      request.nextUrl.pathname.startsWith('/admin')
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -34,7 +51,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (
-    request.nextUrl.pathname.startsWith('/protected') &&
+    (request.nextUrl.pathname.startsWith('/protected') ||
+     request.nextUrl.pathname.startsWith('/admin')) &&
     !user
   ) {
     const url = request.nextUrl.clone()
