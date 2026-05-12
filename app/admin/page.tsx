@@ -176,7 +176,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("all")
   
   const supabase = createClient()
-
+  const router = useRouter()
+  
   const fetchAllData = useCallback(async () => {
     try {
       // Fetch appointments
