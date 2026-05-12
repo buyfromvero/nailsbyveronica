@@ -321,7 +321,11 @@ useEffect(() => {
       .single()
 
     // If not admin
-    if (error || profile?.role !== "admin") {
+    if (
+  error ||
+  profile?.role !== "admin" ||
+  user.email !== "YOUR_EMAIL@gmail.com"
+) {
       router.push("/")
       return
     }
