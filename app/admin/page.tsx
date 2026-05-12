@@ -177,7 +177,7 @@ export default function AdminDashboard() {
   
   const supabase = createClient()
   const router = useRouter()
-  
+
   const fetchAllData = useCallback(async () => {
     try {
       // Fetch appointments
@@ -301,16 +301,44 @@ export default function AdminDashboard() {
     }
   }, [supabase])
 
-  useEffect(() => {
+useEffect(() => {
+  async function checkAdminAccess() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    // If not logged in
+    if (!user) {
+      router.push("/login")
+      return
+    }
+
+    // Check profile role
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    // If not admin
+    if (error || profile?.role !== "admin") {
+      router.push("/")
+      return
+    }
+
+    // Load admin data only if admin
     fetchAllData()
-    
-    // Auto-refresh every 30 seconds
+
+    // Auto refresh
     const interval = setInterval(() => {
       fetchAllData()
     }, 30000)
-    
+
     return () => clearInterval(interval)
-  }, [fetchAllData])
+  }
+
+  checkAdminAccess()
+}, [fetchAllData, router, supabase])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
