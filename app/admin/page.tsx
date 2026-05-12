@@ -328,14 +328,10 @@ useEffect(() => {
     ]
 
     // Block non-admins
-    if (
-      error ||
-      profile?.role !== "admin" ||
-      !adminEmails.includes(user.email || "")
-    ) {
-      router.push("/")
-      return
-    }
+if (error || profile?.role !== "admin") {
+  router.push("/")
+  return
+}
 
     // Load admin data only if admin
     fetchAllData()
