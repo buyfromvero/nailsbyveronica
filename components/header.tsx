@@ -34,7 +34,8 @@ const navLinks = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<{ email?: string } | null>(null)
+  const [user, setUser] = useState<{ email?: string; id?: string } | null>(null)
+const [profile, setProfile] = useState<{ role?: string } | null>(null)
   const pathname = usePathname()
   const supabase = createClient()
 
@@ -47,34 +48,69 @@ export function Header() {
   }, [])
 
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } catch {
-        // Supabase not configured, ignore
-        setUser(null)
-      }
-    }
-    getUser()
-
-    let subscription: { unsubscribe: () => void } | null = null
-    
+  const getUserAndProfile = async () => {
     try {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null)
-      })
-      subscription = data?.subscription ?? null
-    } catch {
-      // Supabase not configured, ignore
-    }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe()
+      setUser(user)
+
+      // Fetch profile role
+      if (user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single()
+
+        setProfile(profileData)
+      } else {
+        setProfile(null)
       }
+    } catch {
+      setUser(null)
+      setProfile(null)
     }
-  }, [supabase.auth])
+  }
+
+  getUserAndProfile()
+
+  let subscription: { unsubscribe: () => void } | null = null
+
+  try {
+    const { data } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const currentUser = session?.user ?? null
+
+        setUser(currentUser)
+
+        if (currentUser) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", currentUser.id)
+            .single()
+
+          setProfile(profileData)
+        } else {
+          setProfile(null)
+        }
+      }
+    )
+
+    subscription = data?.subscription ?? null
+  } catch {
+    setUser(null)
+    setProfile(null)
+  }
+
+  return () => {
+    if (subscription) {
+      subscription.unsubscribe()
+    }
+  }
+}, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
