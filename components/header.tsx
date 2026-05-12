@@ -35,7 +35,7 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState<{ email?: string; id?: string } | null>(null)
-const [profile, setProfile] = useState<{ role?: string } | null>(null)
+  const [profile, setProfile] = useState<{ role?: string } | null>(null)
   const pathname = usePathname()
   const supabase = createClient()
 
@@ -48,69 +48,69 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
   }, [])
 
   useEffect(() => {
-  const getUserAndProfile = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+    const getUserAndProfile = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
 
-      setUser(user)
+        setUser(user)
 
-      // Fetch profile role
-      if (user) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single()
-
-        setProfile(profileData)
-      } else {
-        setProfile(null)
-      }
-    } catch {
-      setUser(null)
-      setProfile(null)
-    }
-  }
-
-  getUserAndProfile()
-
-  let subscription: { unsubscribe: () => void } | null = null
-
-  try {
-    const { data } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user ?? null
-
-        setUser(currentUser)
-
-        if (currentUser) {
+        // Fetch profile role
+        if (user) {
           const { data: profileData } = await supabase
             .from("profiles")
             .select("role")
-            .eq("id", currentUser.id)
+            .eq("id", user.id)
             .single()
 
           setProfile(profileData)
         } else {
           setProfile(null)
         }
+      } catch {
+        setUser(null)
+        setProfile(null)
       }
-    )
-
-    subscription = data?.subscription ?? null
-  } catch {
-    setUser(null)
-    setProfile(null)
-  }
-
-  return () => {
-    if (subscription) {
-      subscription.unsubscribe()
     }
-  }
-}, [supabase])
+
+    getUserAndProfile()
+
+    let subscription: { unsubscribe: () => void } | null = null
+
+    try {
+      const { data } = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          const currentUser = session?.user ?? null
+
+          setUser(currentUser)
+
+          if (currentUser) {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", currentUser.id)
+              .single()
+
+            setProfile(profileData)
+          } else {
+            setProfile(null)
+          }
+        }
+      )
+
+      subscription = data?.subscription ?? null
+    } catch {
+      setUser(null)
+      setProfile(null)
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe()
+      }
+    }
+  }, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -119,11 +119,10 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
           ? 'bg-background/95 backdrop-blur-md shadow-sm'
           : 'bg-transparent'
-      }`}
+        }`}
     >
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-20">
@@ -157,11 +156,10 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`font-medium transition-colors ${
-                    pathname === link.href
+                  className={`font-medium transition-colors ${pathname === link.href
                       ? 'text-primary'
                       : 'text-foreground/80 hover:text-primary'
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -187,12 +185,12 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                     <Link href="/protected">My Account</Link>
                   </DropdownMenuItem>
                   {profile?.role === "admin" && (
-  <DropdownMenuItem asChild>
-    <Link href="/admin">
-      Admin Dashboard
-    </Link>
-  </DropdownMenuItem>
-)}
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut}>
                     Sign Out
                   </DropdownMenuItem>
@@ -228,11 +226,10 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                 <div key={link.name}>
                   <Link
                     href={link.href}
-                    className={`block px-4 py-2 font-medium ${
-                      pathname === link.href
+                    className={`block px-4 py-2 font-medium ${pathname === link.href
                         ? 'text-primary'
                         : 'text-foreground/80'
-                    }`}
+                      }`}
                     onClick={() => setIsOpen(false)}
                   >
                     {link.name}
@@ -259,13 +256,13 @@ const [profile, setProfile] = useState<{ role?: string } | null>(null)
                     <p className="text-sm text-muted-foreground px-2">{user.email}</p>
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/protected">My Account</Link>
-                      
+
                     </Button>
                     {profile?.role === "admin" && (
-  <Button variant="outline" size="sm" asChild>
-    <Link href="/admin">Admin Dashboard</Link>
-  </Button>
-)}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/admin">Admin Dashboard</Link>
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                       Sign Out
                     </Button>
