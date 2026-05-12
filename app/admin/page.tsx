@@ -325,9 +325,9 @@ useEffect(() => {
   error ||
   profile?.role !== "admin" ||
   const adminEmails = [
-  "admin1@gmail.com",
-  "admin2@gmail.com",
-  "admin3@gmail.com",
+  "veronicamendonca2113@gmail.com",
+  "aniruddhashindeofficial@gmail.com",
+  "nailsbyveronica@gmail.com",
 ]
 
 if (
