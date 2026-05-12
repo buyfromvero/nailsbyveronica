@@ -320,21 +320,19 @@ useEffect(() => {
       .eq("id", user.id)
       .single()
 
-const adminEmails = [
-  "veronicamendonca2113@gmail.com",
-  "aniruddhashindeofficial@gmail.com",
-  "nailsbyveronica@gmail.com",
-]
+    // Allowed admin emails
+    const adminEmails = [
+      "veronicamendonca2113@gmail.com",
+      "aniruddhashindeofficial@gmail.com",
+      "nailsbyveronica@gmail.com",
+    ]
 
-if (
-  error ||
-  profile?.role !== "admin" ||
-  !adminEmails.includes(user.email || "")
-) {
-  router.push("/")
-  return
-}
-) {
+    // Block non-admins
+    if (
+      error ||
+      profile?.role !== "admin" ||
+      !adminEmails.includes(user.email || "")
+    ) {
       router.push("/")
       return
     }
