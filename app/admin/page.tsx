@@ -451,6 +451,35 @@ export default function AdminDashboard() {
     return formatDate(dateString)
   }
 
+  const exportToCSV = (type: "appointments" | "messages") => {
+    let csvContent = ""
+    let filename = ""
+
+    if (type === "appointments") {
+      filename = `appointments_${new Date().toISOString().split("T")[0]}.csv`
+      csvContent = "Name,Email,Phone,Service,Preferred Date,Preferred Time,Status,Message,Admin Notes,Created At\n"
+      filteredAppointments.forEach(apt => {
+        csvContent += `"${apt.name}","${apt.email}","${apt.phone || ''}","${apt.service}","${apt.preferred_date}","${apt.preferred_time}","${apt.status}","${(apt.message || '').replace(/"/g, '""')}","${(apt.admin_notes || '').replace(/"/g, '""')}","${apt.created_at}"\n`
+      })
+    } else {
+      filename = `messages_${new Date().toISOString().split("T")[0]}.csv`
+      csvContent = "Name,Email,Phone,Subject,Message,Status,Created At\n"
+      filteredMessages.forEach(msg => {
+        csvContent += `"${msg.name}","${msg.email}","${msg.phone || ''}","${msg.subject}","${(msg.message || '').replace(/"/g, '""')}","${msg.status}","${msg.created_at}"\n`
+      })
+    }
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", filename)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const filteredAppointments = appointments.filter(apt => {
     const matchesSearch = searchQuery === "" || 
       apt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -956,6 +985,15 @@ export default function AdminDashboard() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToCSV("appointments")}
+                    disabled={filteredAppointments.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
                 </div>
               </div>
             </CardHeader>

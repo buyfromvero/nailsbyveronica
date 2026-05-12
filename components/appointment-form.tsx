@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Loader2 } from 'lucide-react'
+import { CalendarIcon, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 
@@ -46,22 +46,73 @@ const timeSlots = [
   '7:00 PM',
 ]
 
+interface FormErrors {
+  name?: string
+  email?: string
+  phone?: string
+  service?: string
+  date?: string
+  time?: string
+}
+
 export function AppointmentForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [date, setDate] = useState<Date>()
+  const [errors, setErrors] = useState<FormErrors>({})
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     service: '',
     time: '',
     message: '',
   })
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required'
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters'
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required'
+    } else if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit Indian phone number'
+    }
+
+    if (!formData.service) {
+      newErrors.service = 'Please select a service'
+    }
+
+    if (!date) {
+      newErrors.date = 'Please select a preferred date'
+    }
+
+    if (!formData.time) {
+      newErrors.time = 'Please select a preferred time'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!date) {
-      toast.error('Please select a preferred date')
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form')
       return
     }
 
@@ -73,20 +124,53 @@ export function AppointmentForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          date: format(date, 'PPP'),
+          date: format(date!, 'PPP'),
         }),
       })
 
-      if (!response.ok) throw new Error('Failed to submit')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to submit')
+      }
 
+      setIsSuccess(true)
       toast.success('Appointment request submitted! We will contact you within 24 hours.')
-      setFormData({ name: '', email: '', service: '', time: '', message: '' })
+      setFormData({ name: '', email: '', phone: '', service: '', time: '', message: '' })
       setDate(undefined)
-    } catch {
-      toast.error('Something went wrong. Please try again.')
+      setErrors({})
+      
+      // Reset success state after 5 seconds
+      setTimeout(() => setIsSuccess(false), 5000)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const clearError = (field: keyof FormErrors) => {
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <Card className="shadow-lg">
+        <CardContent className="p-8 text-center">
+          <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-emerald-600" />
+          </div>
+          <h3 className="font-serif text-2xl font-semibold mb-2">Appointment Request Sent!</h3>
+          <p className="text-muted-foreground mb-6">
+            Thank you for your booking request. I will review your appointment and contact you within 24 hours to confirm.
+          </p>
+          <Button onClick={() => setIsSuccess(false)} variant="outline">
+            Book Another Appointment
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -107,8 +191,18 @@ export function AppointmentForm() {
                 placeholder="Your name"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value })
+                  clearError('name')
+                }}
+                className={errors.name ? 'border-destructive' : ''}
               />
+              {errors.name && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.name}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -119,8 +213,40 @@ export function AppointmentForm() {
                 placeholder="your.email@example.com"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value })
+                  clearError('email')
+                }}
+                className={errors.email ? 'border-destructive' : ''}
               />
+              {errors.email && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="98XXXXXXXX"
+                required
+                value={formData.phone}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value })
+                  clearError('phone')
+                }}
+                className={errors.phone ? 'border-destructive' : ''}
+              />
+              {errors.phone && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.phone}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2">

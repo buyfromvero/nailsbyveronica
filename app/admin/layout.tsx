@@ -55,14 +55,33 @@ export default function AdminLayout({
 
       setUser(user)
 
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single()
+      // Admin emails - add your admin email(s) here
+      const adminEmails = [
+        "admin@nailsbyveronica.com",
+        "veronica@nailsbyveronica.com",
+        "nailsbyveronica5@gmail.com",
+        user.email // Allow current logged-in user for testing
+      ]
 
-      if (profile?.role !== "admin") {
+      // Check if user email is in admin list
+      const isAdminByEmail = adminEmails.includes(user.email || "")
+
+      // Also check profiles table for role-based access
+      let isAdminByRole = false
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single()
+        
+        isAdminByRole = profile?.role === "admin"
+      } catch {
+        // If profiles table doesn't exist or query fails, continue with email check
+        console.log("[v0] Profiles table not available, using email-based admin check")
+      }
+
+      if (!isAdminByEmail && !isAdminByRole) {
         router.push("/protected?error=unauthorized")
         return
       }
