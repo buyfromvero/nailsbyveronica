@@ -324,7 +324,20 @@ useEffect(() => {
     if (
   error ||
   profile?.role !== "admin" ||
-  user.email !== "YOUR_EMAIL@gmail.com"
+  const adminEmails = [
+  "admin1@gmail.com",
+  "admin2@gmail.com",
+  "admin3@gmail.com",
+]
+
+if (
+  error ||
+  profile?.role !== "admin" ||
+  !adminEmails.includes(user.email || "")
+) {
+  router.push("/")
+  return
+}
 ) {
       router.push("/")
       return
