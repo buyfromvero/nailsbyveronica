@@ -1,0 +1,43 @@
+{
+  "name": "Nails by Veronica",
+  "short_name": "NailsByVeronica",
+  "description": "Premium nail art services in Mumbai - Gel extensions, nail art, manicure & pedicure",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#c9a08a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["beauty", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "url": "/appointment",
+      "description": "Book a nail appointment"
+    },
+    {
+      "name": "View Services",
+      "url": "/services",
+      "description": "Browse our nail services"
+    },
+    {
+      "name": "Contact Us",
+      "url": "/contact",
+      "description": "Get in touch with us"
+    }
+  ]
+}

@@ -1,16 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
+import { validateAppointmentForm, sanitizeInput } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, email, service, date, time, message } = body
+    // Rate limiting - 5 requests per minute per IP
+    const clientIP = getClientIP(request)
+    const rateLimitResult = rateLimit(`appointment:${clientIP}`, {
+      interval: 60000,
+      maxRequests: 5,
+    })
 
-    // Validate required fields
-    if (!name || !email || !service || !date || !time) {
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          }
+        }
+      )
+    }
+
+    const body = await request.json()
+    const { name, email, phone, service, date, time, message } = body
+
+    // Server-side validation
+    const validation = validateAppointmentForm({
+      name,
+      email,
+      phone,
+      service,
+      date,
+      time,
+      message,
+    })
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: 'Validation failed', errors: validation.errors },
         { status: 400 }
       )
+    }
+
+    // Sanitize inputs
+    const sanitizedData = {
+      name: sanitizeInput(name),
+      email: email.toLowerCase().trim(),
+      phone: phone?.replace(/\s/g, ''),
+      service: sanitizeInput(service),
+      date: sanitizeInput(date),
+      time: sanitizeInput(time),
+      message: message ? sanitizeInput(message) : '',
     }
 
     // Send to Google Sheets (if configured)
@@ -22,12 +65,7 @@ export async function POST(request: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'appointment',
-            name,
-            email,
-            service,
-            date,
-            time,
-            message: message || 'No additional notes',
+            ...sanitizedData,
             timestamp: new Date().toISOString(),
           }),
         })
@@ -37,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification (using a simple email service or Gmail API)
-    const emailTo = 'veronicamendonca2113@gmail.com'
+    const emailTo = 'nailsbyveronica5@gmail.com'
     
     // If you have Resend or other email service configured
     const resendApiKey = process.env.RESEND_API_KEY
@@ -52,15 +90,16 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: 'Nails by Veronica <onboarding@resend.dev>',
             to: [emailTo],
-            subject: `New Appointment Request from ${name}`,
+            subject: `New Appointment Request from ${sanitizedData.name}`,
             html: `
               <h2>New Appointment Request</h2>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Service:</strong> ${service}</p>
-              <p><strong>Preferred Date:</strong> ${date}</p>
-              <p><strong>Preferred Time:</strong> ${time}</p>
-              <p><strong>Additional Notes:</strong> ${message || 'None'}</p>
+              <p><strong>Name:</strong> ${sanitizedData.name}</p>
+              <p><strong>Email:</strong> ${sanitizedData.email}</p>
+              <p><strong>Phone:</strong> ${sanitizedData.phone || 'Not provided'}</p>
+              <p><strong>Service:</strong> ${sanitizedData.service}</p>
+              <p><strong>Preferred Date:</strong> ${sanitizedData.date}</p>
+              <p><strong>Preferred Time:</strong> ${sanitizedData.time}</p>
+              <p><strong>Additional Notes:</strong> ${sanitizedData.message || 'None'}</p>
               <hr>
               <p><small>Received at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</small></p>
             `,
@@ -71,14 +110,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log the submission for tracking
+    // Log the submission for tracking (sanitized)
     console.log('Appointment request received:', {
-      name,
-      email,
-      service,
-      date,
-      time,
-      message,
+      name: sanitizedData.name,
+      email: sanitizedData.email,
+      service: sanitizedData.service,
+      date: sanitizedData.date,
       timestamp: new Date().toISOString(),
     })
 

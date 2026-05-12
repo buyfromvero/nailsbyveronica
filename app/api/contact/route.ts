@@ -1,16 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
+import { validateContactForm, sanitizeInput } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, email, subject, message } = body
+    // Rate limiting - 5 requests per minute per IP
+    const clientIP = getClientIP(request)
+    const rateLimitResult = rateLimit(`contact:${clientIP}`, {
+      interval: 60000,
+      maxRequests: 5,
+    })
 
-    // Validate required fields
-    if (!name || !email || !subject || !message) {
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          }
+        }
+      )
+    }
+
+    const body = await request.json()
+    const { name, email, phone, subject, message } = body
+
+    // Server-side validation
+    const validation = validateContactForm({
+      name,
+      email,
+      phone,
+      subject,
+      message,
+    })
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: 'Validation failed', errors: validation.errors },
         { status: 400 }
       )
+    }
+
+    // Sanitize inputs
+    const sanitizedData = {
+      name: sanitizeInput(name),
+      email: email.toLowerCase().trim(),
+      phone: phone?.replace(/\s/g, '') || '',
+      subject: sanitizeInput(subject),
+      message: sanitizeInput(message),
     }
 
     // Send to Google Sheets (if configured)
@@ -22,10 +61,7 @@ export async function POST(request: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'contact',
-            name,
-            email,
-            subject,
-            message,
+            ...sanitizedData,
             timestamp: new Date().toISOString(),
           }),
         })
@@ -35,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification
-    const emailTo = 'veronicamendonca2113@gmail.com'
+    const emailTo = 'nailsbyveronica5@gmail.com'
     
     // If you have Resend or other email service configured
     const resendApiKey = process.env.RESEND_API_KEY
@@ -50,14 +86,15 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: 'Nails by Veronica <onboarding@resend.dev>',
             to: [emailTo],
-            subject: `New Contact Message: ${subject}`,
+            subject: `New Contact Message: ${sanitizedData.subject}`,
             html: `
               <h2>New Contact Message</h2>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Subject:</strong> ${subject}</p>
+              <p><strong>Name:</strong> ${sanitizedData.name}</p>
+              <p><strong>Email:</strong> ${sanitizedData.email}</p>
+              <p><strong>Phone:</strong> ${sanitizedData.phone || 'Not provided'}</p>
+              <p><strong>Subject:</strong> ${sanitizedData.subject}</p>
               <p><strong>Message:</strong></p>
-              <p>${message}</p>
+              <p>${sanitizedData.message}</p>
               <hr>
               <p><small>Received at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</small></p>
             `,
@@ -68,12 +105,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log the submission for tracking
+    // Log the submission for tracking (sanitized)
     console.log('Contact form submitted:', {
-      name,
-      email,
-      subject,
-      message,
+      name: sanitizedData.name,
+      email: sanitizedData.email,
+      subject: sanitizedData.subject,
       timestamp: new Date().toISOString(),
     })
 
