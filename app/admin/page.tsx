@@ -325,6 +325,7 @@ useEffect(() => {
       "veronicamendonca2113@gmail.com",
       "aniruddhashindeofficial@gmail.com",
       "nailsbyveronica@gmail.com",
+      "buyfromveronica@gmail.com",
     ]
 
   
