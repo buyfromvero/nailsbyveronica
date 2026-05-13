@@ -308,10 +308,10 @@ useEffect(() => {
     } = await supabase.auth.getUser()
 
     // If not logged in
-    if (!user) {
-      router.push("/login")
-      return
-    }
+if (!user) {
+  router.push("/auth/login")
+  return
+}
 
     // Check profile role
 const { data: profile, error } = await supabase
