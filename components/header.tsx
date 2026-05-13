@@ -170,7 +170,7 @@ const [loading, setLoading] = useState(true)
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            {user === undefined ? null : user ? (
+            {loading ? null : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
