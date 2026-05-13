@@ -34,7 +34,8 @@ const navLinks = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<any>(undefined)
+  const [user, setUser] = useState<any>(null)
+const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<{ role?: string } | null>(null)
   const pathname = usePathname()
   const supabase = createClient()
