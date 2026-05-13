@@ -33,7 +33,7 @@ export default function AdminPage() {
           .from("profiles")
           .select("role")
           .eq("email", user.email)
-          .single()
+          .maybeSingle()
 
         const isAdmin = profile?.role === "admin"
 
