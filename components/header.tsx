@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, ChevronDown, User } from "lucide-react"
+import { Menu, X, ChevronDown } from "lucide-react"
 
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
@@ -13,8 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-import { createClient } from "@/lib/supabase/client"
 
 const services = [
   { name: "Gel Extensions", href: "/services#gel-extensions" },
@@ -36,11 +34,8 @@ const navLinks = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<{ role?: string } | null>(null)
 
   const pathname = usePathname()
-  const supabase = createClient()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,60 +46,6 @@ export function Header() {
 
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      setUser(user)
-
-      if (user) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("email", user.email)
-          .single()
-
-        setProfile(profileData)
-      } else {
-        setProfile(null)
-      }
-    }
-
-    getUser()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null
-
-      setUser(currentUser)
-
-      if (currentUser) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("email", currentUser.email)
-          .single()
-
-        setProfile(profileData)
-      } else {
-        setProfile(null)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-  }
 
   return (
     <header
@@ -161,51 +102,14 @@ export function Header() {
           </div>
 
           {/* Desktop Auth */}
-          <div className="hidden lg:flex items-center gap-4 min-w-[160px] justify-end">
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="gap-2 bg-primary text-white hover:bg-primary/90"
-                  >
-                    <User className="h-4 w-4" />
-                    My Account
-                  </Button>
-                </DropdownMenuTrigger>
+          <div className="hidden lg:flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth/login">Sign In</Link>
+            </Button>
 
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="text-muted-foreground">
-                    {user.email}
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link href="/protected">My Account</Link>
-                  </DropdownMenuItem>
-
-                  {profile?.role === "admin" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin">Admin Dashboard</Link>
-                    </DropdownMenuItem>
-                  )}
-
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/auth/login">Sign In</Link>
-                </Button>
-
-                <Button size="sm" asChild>
-                  <Link href="/auth/sign-up">Sign Up</Link>
-                </Button>
-              </>
-            )}
+            <Button size="sm" asChild>
+              <Link href="/auth/sign-up">Sign Up</Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -258,41 +162,13 @@ export function Header() {
               ))}
 
               <div className="px-4 pt-4 border-t flex flex-col gap-2">
-                {user ? (
-                  <>
-                    <p className="text-sm text-muted-foreground px-2">
-                      {user.email}
-                    </p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/auth/login">Sign In</Link>
+                </Button>
 
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/protected">My Account</Link>
-                    </Button>
-
-                    {profile?.role === "admin" && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href="/admin">Admin Dashboard</Link>
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSignOut}
-                    >
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/auth/login">Sign In</Link>
-                    </Button>
-
-                    <Button size="sm" asChild>
-                      <Link href="/auth/sign-up">Sign Up</Link>
-                    </Button>
-                  </>
-                )}
+                <Button size="sm" asChild>
+                  <Link href="/auth/sign-up">Sign Up</Link>
+                </Button>
               </div>
             </div>
           </div>
