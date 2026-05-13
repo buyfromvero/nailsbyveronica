@@ -37,7 +37,6 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<{ role?: string } | null>(null)
 
   const pathname = usePathname()
@@ -54,34 +53,25 @@ export function Header() {
   }, [])
 
   useEffect(() => {
-    const getUserAndProfile = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-        setUser(user)
+      setUser(user)
 
-        if (user) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single()
+      if (user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single()
 
-          setProfile(profileData)
-        } else {
-          setProfile(null)
-        }
-      } catch (error) {
-        setUser(null)
-        setProfile(null)
-      } finally {
-        setLoading(false)
+        setProfile(profileData)
       }
     }
 
-    getUserAndProfile()
+    getUser()
 
     const {
       data: { subscription },
@@ -101,8 +91,6 @@ export function Header() {
       } else {
         setProfile(null)
       }
-
-      setLoading(false)
     })
 
     return () => {
@@ -172,7 +160,7 @@ export function Header() {
 
           {/* Desktop Auth */}
           <div className="hidden lg:flex items-center gap-4">
-            {loading ? null : user ? (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
