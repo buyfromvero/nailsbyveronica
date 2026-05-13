@@ -327,8 +327,13 @@ useEffect(() => {
       "nailsbyveronica@gmail.com",
     ]
 
-    // Block non-admins
-if (error || profile?.role !== "admin") {
+  
+// Check if user is admin by role OR email
+const isAdmin =
+  profile?.role === "admin" ||
+  adminEmails.includes(user.email || "")
+
+if (error || !isAdmin) {
   router.push("/")
   return
 }
