@@ -263,7 +263,7 @@ export function Header() {
                     </p>
 
                     <Button variant="outline" size="sm" asChild>
-                      <Link href="/account">My Account</Link>
+                      <Link href="/protected">My Account</Link>
                     </Button>
 
                     {profile?.role === "admin" && (
