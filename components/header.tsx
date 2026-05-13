@@ -170,7 +170,7 @@ const [loading, setLoading] = useState(true)
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            {loading ? null : user ? (
+{loading ? null : user ? (
   <Link href="/account">
     <Button variant="outline" size="sm">
       My Account
