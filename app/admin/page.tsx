@@ -333,7 +333,7 @@ const isAdmin =
   profile?.role === "admin" ||
   adminEmails.includes(user.email || "")
 
-if (error || !isAdmin) {
+if (!isAdmin) {
   router.push("/")
   return
 }
