@@ -153,7 +153,7 @@ const [loading, setLoading] = useState(true)
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              ) : (
+              )}
                 <Link
                   key={link.name}
                   href={link.href}
