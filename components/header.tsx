@@ -64,7 +64,7 @@ export function Header() {
         const { data: profileData } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", user.id)
+          .eq("email", user.email)
           .single()
 
         setProfile(profileData)
@@ -84,7 +84,7 @@ export function Header() {
         const { data: profileData } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", currentUser.id)
+          .eq("email", currentUser.email)
           .single()
 
         setProfile(profileData)
