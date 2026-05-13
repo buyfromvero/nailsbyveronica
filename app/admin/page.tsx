@@ -308,17 +308,17 @@ useEffect(() => {
     } = await supabase.auth.getUser()
 
     // If not logged in
-    if (!user) {
-      router.push("/login")
-      return
-    }
+if (!user) {
+  router.push("/auth/login")
+  return
+}
 
     // Check profile role
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
+const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("email", user.email)
+  .single()
 
     // Allowed admin emails
     const adminEmails = [
