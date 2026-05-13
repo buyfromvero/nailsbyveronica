@@ -159,11 +159,15 @@ export function Header() {
           </div>
 
           {/* Desktop Auth */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4 min-w-[160px] justify-end">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2 bg-primary text-white hover:bg-primary/90"
+                  >
                     <User className="h-4 w-4" />
                     My Account
                   </Button>
