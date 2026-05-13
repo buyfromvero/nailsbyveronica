@@ -34,7 +34,7 @@ const navLinks = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<{ email?: string; id?: string } | null>(null)
+  const [user, setUser] = useState<any>(undefined)
   const [profile, setProfile] = useState<{ role?: string } | null>(null)
   const pathname = usePathname()
   const supabase = createClient()
@@ -169,7 +169,7 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            {user ? (
+            {user === undefined ? null : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -182,7 +182,7 @@ export function Header() {
                     {user.email}
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/protected">My Account</Link>
+                    <Link href="/account">My Account</Link>
                   </DropdownMenuItem>
                   {profile?.role === "admin" && (
                     <DropdownMenuItem asChild>
