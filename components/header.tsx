@@ -68,6 +68,8 @@ export function Header() {
           .single()
 
         setProfile(profileData)
+      } else {
+        setProfile(null)
       }
     }
 
@@ -81,11 +83,11 @@ export function Header() {
       setUser(currentUser)
 
       if (currentUser) {
-const { data: profileData } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("email", user.email)
-  .single()
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("email", currentUser.email)
+          .single()
 
         setProfile(profileData)
       } else {
